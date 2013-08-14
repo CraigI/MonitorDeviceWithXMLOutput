@@ -1,0 +1,2 @@
+BarracudaXML Inbound queue size is currently 2 which is abnormal.
+BarracudaXML Inbound queue size is currently 33 which is abnormal.
