@@ -1,13 +1,49 @@
 $ErrorActionPreference = "SilentlyContinue"
+$AllowMalformedXML = $true # $true or $false
+
+function MalformedXML
+{
+	#-------------------------------------------------------------
+	# Only use this section if the device provides errors such as:
+	# The server comitted a protcol violation
+	# Section=ResponseHeader
+	# Detail=Header name is invalid
+	#
+	# Using this section of the script should only be used IF you
+	# trust the device. This piece of code opens the script up for
+	# malformed headers and exploits.
+	#
+	# Credit for this section goes to 
+	# http://www.leeholmes.com/blog/2007/03/19/converting-c-to-powershell/
+	#-------------------------------------------------------------
+	$netAssembly = [Reflection.Assembly]::GetAssembly([System.Net.Configuration.SettingsSection])
+	if($netAssembly)
+	{
+		$bindingFlags = [Reflection.BindingFlags] “Static,GetProperty,NonPublic”
+		$settingsType = $netAssembly.GetType(“System.Net.Configuration.SettingsSectionInternal”)
+		$instance = $settingsType.InvokeMember(“Section”, $bindingFlags, $null, $null, @())
+		if($instance)
+		{
+			$bindingFlags = “NonPublic”,“Instance”
+			$useUnsafeHeaderParsingField = $settingsType.GetField(“useUnsafeHeaderParsing”, $bindingFlags)
+			if($useUnsafeHeaderParsingField)
+			{
+			  $useUnsafeHeaderParsingField.SetValue($instance, $true)
+			}
+		}
+	}
+	# End credit
+	#-------------------------------------------------------------
+}
 
 function RunSendEmail
 {
 	$FromAddress = "no-reply-BarracudaIssues@domain.com"
-	#$ToAddress = "alerts@domain.com,craig.irvin@domain.com"
-	$ToAddress = "email@domain.com"
+	#$ToAddress = "<email1@domain.com>,<email2@domain.com>"
+	$ToAddress = "<email1@domain.com>"
 	$MessageSubject = "Barracuda Spamfilter Issues Found"
 	$MessageBody = get-content body.txt
-	$SendingServer = "<IP or DNS name of SMTP server>"
+	$SendingServer = "<IP or name of SMTP server>"
 
 	###Create the mail message and add the statistics text file as an attachment
 	$SMTPMessage = New-Object System.Net.Mail.MailMessage $FromAddress,$ToAddress,$MessageSubject,$MessageBody
@@ -67,6 +103,10 @@ function ConnectToDevice
 	}
 }
 
+If ($AllowMalformedXML -eq $true)
+{
+	MalformedXML
+}
 
 $Devices = Import-CSV Devices.csv
 $global:ErrorCount = 0
