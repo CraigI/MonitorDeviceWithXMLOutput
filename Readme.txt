@@ -3,7 +3,7 @@ MonitorLogFolders
 PowerShell Script used to a device that has an XML output. In my case this deviec as a Barracuda Spam and Virus Firewall.
 
 
-Please see: http://it-erate.com/<tbd> for further details on how to configure this script.
+Please see: http://it-erate.com/powershell-monitor-xml-output-device/ for further details on how to configure this script.
 
 
 Main Files
